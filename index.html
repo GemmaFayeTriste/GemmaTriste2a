@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mood Journal 💖</title>
+<style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+  body {
+    background: linear-gradient(180deg, #ffd6e7, #fff0f5);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 20px;
+    margin: 0;
+  }
+  .card {
+    background: white;
+    width: 100%;
+    max-width: 420px;
+    padding: 28px;
+    border-radius: 24px;
+    box-shadow: 0 10px 30px rgba(255,105,180,0.25);
+    border: 2px solid #ffc2d4;
+  }
+  .hidden { display: none; }
+  .logo { font-size: 70px; text-align: center; }
+  h1 { text-align: center; color: #ff4d8d; margin: 5px 0; font-size: 32px; }
+  h2 { color: #ff4d8d; margin: 0 0 5px; }
+  h3 { color: #ff4d8d; margin-top: 25px; }
+  .subtitle { text-align: center; color: #888; margin-top: 0; }
+  input, textarea {
+    width: 100%; padding: 14px; margin-top: 12px;
+    border: 2px solid #ffc2d4; border-radius: 12px;
+    outline: none; font-size: 15px; background: #fff5f8;
+  }
+  input:focus, textarea:focus { border-color: #ff4d8d; }
+  button {
+    width: 100%; padding: 15px; margin-top: 16px;
+    background: #ff4d8d; color: white; border: none;
+    border-radius: 12px; font-size: 17px; font-weight: bold; cursor: pointer;
+  }
+  button:hover { background: #e63a7a; }
+  button.logout { background: white; color: #ff4d8d; border: 2px solid #ffc2d4; }
+  .mood-list { display: flex; justify-content: space-between; margin: 15px 0; }
+  .mood-item {
+    text-align: center; cursor: pointer; padding: 8px;
+    border-radius: 50px; border: 2px solid transparent; flex: 1;
+  }
+  .mood-item.selected { background: #ffe0ec; border-color: #ff4d8d; }
+  .mood-item .emoji { font-size: 32px; display: block; }
+  .mood-item span { font-size: 11px; color: #555; }
+  .entry {
+    background: #fff5f8; border: 1px solid #ffc2d4;
+    border-radius: 14px; padding: 12px; margin-bottom: 10px;
+    display: flex; gap: 10px; position: relative;
+  }
+  .entry .emoji { font-size: 30px; }
+  .entry small { color: #999; }
+  .delete-btn {
+    position: absolute; top: 5px; right: 8px;
+    background: none; color: #ff4d8d; width: auto;
+    padding: 2px 8px; font-size: 14px; margin: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginPage" class="card">
+  <div class="logo">🌸</div>
+  <h1>Mood Journal</h1>
+  <p class="subtitle">How are you feeling today?</p>
+  <input type="text" id="nameInput" placeholder="Your Name">
+  <input type="password" id="passInput" placeholder="Password (any)">
+  <button onclick="login()">Log In 💖</button>
+</div>
+
+<!-- HOME -->
+<div id="homePage" class="card hidden">
+  <h2 id="greeting">Hi! 💖</h2>
+  <p class="subtitle">How are you feeling?</p>
+  <div id="moodList" class="mood-list"></div>
+  <textarea id="noteInput" placeholder="Short note... (e.g. pagod pero okay)"></textarea>
+  <button onclick="saveMood()">Save Mood 💗</button>
+  <h3>Your Entries</h3>
+  <div id="entries"></div>
+  <button class="logout" onclick="logout()">Log Out</button>
+</div>
+
+<script>
+  // DATA (galing sana sa data.json, nilagay ko na dito)
+  const moods = [
+    { emoji: "😭", label: "Sad" },
+    { emoji: "😤", label: "Angry" },
+    { emoji: "😐", label: "Okay" },
+    { emoji: "😊", label: "Happy" },
+    { emoji: "🤩", label: "Amazing" }
+  ];
+
+  let selectedMood = '😊';
+  let selectedLabel = 'Happy';
+  let entries = JSON.parse(localStorage.getItem('mood_entries') || '[]');
+
+  renderMoods();
+  renderEntries();
+
+  function renderMoods() {
+    const list = document.getElementById('moodList');
+    list.innerHTML = '';
+    moods.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'mood-item' + (m.emoji === selectedMood ? ' selected' : '');
+      div.innerHTML = `<div class="emoji">${m.emoji}</div><span>${m.label}</span>`;
+      div.onclick = () => {
+        selectedMood = m.emoji;
+        selectedLabel = m.label;
+        renderMoods();
+      };
+      list.appendChild(div);
+    });
+  }
+
+  function login() {
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) return alert('Please enter your name 💖');
+    localStorage.setItem('mood_user', name);
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('homePage').classList.remove('hidden');
+    document.getElementById('greeting').innerText = `Hi, ${name}! 💖`;
+  }
+
+  function saveMood() {
+    const note = document.getElementById('noteInput').value;
+    const date = new Date().toLocaleString();
+    entries.unshift({ mood: selectedMood, label: selectedLabel, note, date });
+    localStorage.setItem('mood_entries', JSON.stringify(entries));
+    document.getElementById('noteInput').value = '';
+    renderEntries();
+    alert('Mood saved! 💖');
+  }
+
+  function renderEntries() {
+    const box = document.getElementById('entries');
+    if (entries.length === 0) {
+      box.innerHTML = '<p>No entries yet. Log your first mood! 🌱</p>';
+      return;
+    }
+    box.innerHTML = entries.map((e, i) => `
+      <div class="entry">
+        <div class="emoji">${e.mood}</div>
+        <div>
+          <b>${e.label}</b><br>
+          <small>${e.date}</small><br>
+          ${e.note || '(No note)'}
+        </div>
+        <button class="delete-btn" onclick="deleteEntry(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function deleteEntry(i) {
+    entries.splice(i, 1);
+    localStorage.setItem('mood_entries', JSON.stringify(entries));
+    renderEntries();
+  }
+
+  function logout() {
+    document.getElementById('homePage').classList.add('hidden');
+    document.getElementById('loginPage').classList.remove('hidden');
+  }
+</script>
+
+</body>
+</html>
