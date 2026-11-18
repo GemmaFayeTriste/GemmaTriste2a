@@ -1,0 +1,9 @@
+{
+  "moods": [
+    { "emoji": "😭", "label": "Sad" },
+    { "emoji": "😤", "label": "Angry" },
+    { "emoji": "😐", "label": "Okay" },
+    { "emoji": "😊", "label": "Happy" },
+    { "emoji": "🤩", "label": "Amazing" }
+  ]
+}
